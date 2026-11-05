@@ -1,0 +1,44 @@
+
+.INCLUDE "m324pdef.inc"
+
+.ORG 0x0000
+    RJMP RESET
+
+RESET:
+    ; Khoi tao Stack Pointer
+    LDI R16, HIGH(RAMEND)
+    OUT SPH, R16
+    LDI R16, LOW(RAMEND)
+    OUT SPL, R16
+
+    ; PORTA: INPUT
+    LDI R16, 0x00
+    OUT DDRA, R16
+
+    ; Kich hoat Pull-up
+    LDI R16, 0xFF
+    OUT PORTA, R16
+
+    ; PORTB: OUTPUT
+    LDI R16, 0xFF
+    OUT DDRB, R16
+
+MAIN:
+    ; Doc gia tri PORTA
+    IN R16, PINA
+
+    ; Tach nibble cao
+    MOV R17, R16
+    SWAP R17
+    ANDI R17, 0x0F
+
+    ; Tach nibble thap
+    ANDI R16, 0x0F
+
+    ; Nhan hai nibble
+    MUL R17, R16
+
+    ; Xuat ket qua ra PORTB
+    OUT PORTB, R0
+
+    RJMP MAIN
