@@ -1,0 +1,36 @@
+
+.INCLUDE "m324pdef.inc"
+
+.ORG 0x0000
+    RJMP RESET
+
+RESET:
+    ; Khoi tao Stack Pointer
+    LDI R16, HIGH(RAMEND)
+    OUT SPH, R16
+    LDI R16, LOW(RAMEND)
+    OUT SPL, R16
+
+    ; PA0: INPUT, PA1: OUTPUT
+    LDI R16, 0b00000010
+    OUT DDRA, R16
+
+    ; Kich hoat Pull-up PA0
+    ; Khoi tao LED PA1 o muc 0
+    LDI R16, 0b00000001
+    OUT PORTA, R16
+
+MAIN:
+    ; Kiem tra trang thai Switch PA0
+    SBIC PINA, 0
+
+    RJMP SW_RELEASED
+
+    ; Switch duoc nhan -> Bat LED
+    SBI PORTA, 1
+    RJMP MAIN
+
+SW_RELEASED:
+    ; Switch duoc nha -> Tat LED
+    CBI PORTA, 1
+    RJMP MAIN
