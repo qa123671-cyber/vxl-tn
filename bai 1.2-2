@@ -1,1 +1,192 @@
+;====================================================
+; MCU       : ATmega324PA
+; CLOCK     : 8 MHz
+; TIMER0    : CTC MODE
+; PRESCALER : 8
+; OUTPUT    : PA0
+;====================================================
 
+.CSEG
+.ORG 0x0000
+    RJMP RESET
+
+
+;====================================================
+; KHOI TAO HE THONG
+;====================================================
+
+RESET:
+
+    CLI
+
+    ; Khoi tao Stack Pointer
+    LDI R16, HIGH(RAMEND)
+    OUT SPH, R16
+
+    LDI R16, LOW(RAMEND)
+    OUT SPL, R16
+
+    ; PA0 la OUTPUT
+    SBI DDRA, 0
+    CBI PORTA, 0
+
+    ; Dung Timer0 de cau hinh
+    LDI R16, 0x00
+    OUT TCCR0A, R16
+    OUT TCCR0B, R16
+
+    ; Xoa bo dem Timer0
+    OUT TCNT0, R16
+
+    ; OCR0A = 249
+    LDI R16, 249
+    OUT OCR0A, R16
+
+    ; Chon CTC Mode
+    LDI R16, 0x02
+    OUT TCCR0A, R16
+
+    ; Xoa co Compare Match A
+    LDI R16, 0x02
+    OUT TIFR0, R16
+
+    ; Khoi dong Timer0, Prescaler = 8
+    LDI R16, 0x02
+    OUT TCCR0B, R16
+
+
+;====================================================
+; LUA CHON CHUONG TRINH
+;====================================================
+
+    RJMP MAIN_1KHZ
+
+;   RJMP MAIN_LED
+
+
+;====================================================
+; PHAN A: TAO XUNG VUONG 1KHZ TREN PA0
+;====================================================
+
+MAIN_1KHZ:
+
+    SBI PORTA, 0
+    RCALL DELAY_500US
+
+    CBI PORTA, 0
+    RCALL DELAY_500US
+
+    RJMP MAIN_1KHZ
+
+
+;====================================================
+; PHAN B: CHOP TAT LED TREN PA0
+;====================================================
+
+MAIN_LED:
+
+    SBI PORTA, 0
+    RCALL DELAY_1S
+
+    CBI PORTA, 0
+    RCALL DELAY_1S
+
+    RJMP MAIN_LED
+
+
+;====================================================
+; DELAY 250us - TIMER0
+;====================================================
+
+DELAY_250US:
+
+WAIT_250US:
+
+    SBIS TIFR0, 1
+    RJMP WAIT_250US
+
+    ; Xoa co Compare Match A
+    LDI R16, 0x02
+    OUT TIFR0, R16
+
+    RET
+
+
+;====================================================
+; DELAY 500us
+;====================================================
+
+DELAY_500US:
+
+    RCALL DELAY_250US
+    RCALL DELAY_250US
+
+    RET
+
+
+;====================================================
+; DELAY 1ms
+;====================================================
+
+DELAY_1MS:
+
+    LDI R18, 4
+
+LOOP_1MS:
+
+    RCALL DELAY_250US
+    DEC R18
+    BRNE LOOP_1MS
+
+    RET
+
+
+;====================================================
+; DELAY 10ms
+;====================================================
+
+DELAY_10MS:
+
+    LDI R19, 10
+
+LOOP_10MS:
+
+    RCALL DELAY_1MS
+    DEC R19
+    BRNE LOOP_10MS
+
+    RET
+
+
+;====================================================
+; DELAY 100ms
+;====================================================
+
+DELAY_100MS:
+
+    LDI R20, 10
+
+LOOP_100MS:
+
+    RCALL DELAY_10MS
+    DEC R20
+    BRNE LOOP_100MS
+
+    RET
+
+
+;====================================================
+; DELAY 1s
+;====================================================
+
+DELAY_1S:
+
+    LDI R21, 10
+
+LOOP_1S:
+
+    RCALL DELAY_100MS
+    DEC R21
+    BRNE LOOP_1S
+
+    RET
